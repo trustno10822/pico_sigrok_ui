@@ -1,0 +1,1 @@
+#include <microhttpd.h>\n#include <stdio.h>\n#include <string.h>\n#include <stdlib.h>\n\n// WebSocket support here\n\nint main() {\n    // Start the HTTP server with libmicrohttpd\n    printf("Starting HTTP server...\n");\n    return 0;\n}
