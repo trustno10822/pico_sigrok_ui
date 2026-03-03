@@ -1,0 +1,46 @@
+name: Build Pico UF2
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install system packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake ninja-build git python3 python3-pip libusb-1.0-0-dev gcc-arm-none-eabi
+
+      - name: Ensure Raspberry Pi Pico SDK
+        run: |
+          if [ ! -d pico-sdk ]; then
+            git clone https://github.com/raspberrypi/pico-sdk.git pico-sdk
+            cd pico-sdk && git submodule update --init --recursive && cd -
+          fi
+
+      - name: Configure CMake build
+        run: |
+          cmake -S . -B build -G Ninja -DPICO_SDK_PATH=${{ github.workspace }}/pico-sdk
+
+      - name: Build
+        run: |
+          cmake --build build -j
+
+      - name: Collect build artifacts
+        run: |
+          mkdir -p artifacts
+          find build -type f \( -name "*.uf2" -o -name "*.hex" -o -name "*.elf" \) -exec cp {} artifacts/ \; || true
+
+      - name: Upload UF2 artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: pico-uf2-artifacts
+          path: artifacts
